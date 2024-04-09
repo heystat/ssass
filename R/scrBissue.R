@@ -1,8 +1,7 @@
 #' 신용등급 FACTOR 변환
 #'
 #' @param credit 신용등급 텍스트
-#'
-#' @return factor
+#' @return 신용등급(Factor)
 #' @examples
 #' cnvt_crdt2fac('AAA+/AAA-')
 #'
@@ -32,7 +31,7 @@ cnvt_crdt2fac <- function(credit) {
 scrape_issue <- function(krcd, tax_md = c('dvd', 'tot')) {
 
   otp = list(isuCd = krcd, bld = 'dbms/MDC/STAT/standard/MDCSTAT10901')
-  htm = POST(query = otp, url = 'http://data.krx.co.kr/comm/bldAttendant/getJsonData.cmd')
+  htm = httr::POST(query = otp, url = 'http://data.krx.co.kr/comm/bldAttendant/getJsonData.cmd')
   htm = html_text(read_html(htm))
   txt = gsub("\"|output\":|\\{|\\}|\\[|\\]", "", htm)
   txt = gsub(",([[:digit:]])", "\\1", txt)
@@ -130,23 +129,54 @@ scrape_issue.print <- function(krcd) {
 #' get_issue(krcd = 'KR6079161C75')
 #'
 get_issue <- function(krcd) {
-  # system.file("data", "dat_issue", package = "ssass")
-  data('dat_issue')
 
-  if (any(dat_issue$ISU_CD==krcd)) {
-    ind_issue = dat_issue[dat_issue$ISU_CD==krcd,]
+  isu_pth = file.path(dat_pth, 'dat_issue.rda')
+
+  if (file.exists(isu_pth)) {
+    dat_isu = read_rds(isu_pth)
   } else {
-    ind_issue = scrape_issue(krcd)
-    dat_issue = bind_rows(dat_issue, ind_issue)
-    # dat_issue = ind_issue
-    usethis::use_data(dat_issue, overwrite = TRUE)
+    ifelse(!dir.exists(dat_pth), dir.create(dat_pth), FALSE)
+    write_rds(data.frame(), file = isu_pth)
   }
-  return(ind_issue)
-}
-# get_issue(krcd = 'KR6080721D34')
-# get_issue(krcd = 'KR6080721D34')
-# get_issue(krcd = 'KR6034832E28')
 
+  if (any(dat_isu[['ISU_CD']] == krcd)) {
+    ind_isu = dat_isu[dat_isu[['ISU_CD']] == krcd,]
+  } else {
+    ind_isu = scrape_issue(krcd)
+    dat_isu = bind_rows(dat_isu, ind_isu)
+    write_rds(dat_isu, file = isu_pth)
+  }
+  return(ind_isu)
+}
+
+
+#' 채권 발행정보 출력
+#'
+#' @param krcd
+#' @param mthd
+#'
+#' @examples
+#' print.get_issue(krcd = 'KR6079161C75')
+#'
+print.get_issue <- function(krcd, digits=5, ...) {
+  ind_isu = get_issue(krcd)
+  cat("            채권CD : ", ind_isu$ISU_CD, "\n")
+  cat("            채권명 : ", ind_isu$ISU_NM, "\n")
+  cat("          신용등급 : ", ind_isu$CREDIT, "\n")
+  cat("          채권유형 : ", ind_isu$BTP_NM, "\n")
+  cat("          발행형태 : ", ind_isu$INT_MD, "\n")
+  cat("            옵션CD : ", ind_isu$OPTION, "\n")
+  cat("          연지급수 : ", ind_isu$INT_FQ, "\n")
+  cat("            발행일 : ", format(ind_isu$ISU_DD, format="%Y-%m-%d"), "\n")
+  cat("            상환일 : ", format(ind_isu$RDM_DD, format="%Y-%m-%d"), "\n")
+  cat("          표면금리 : ", ind_isu$COUPON, "\n")
+  cat("            상환율 : ", format(ind_isu$RDM_RT, digits=digits), "\n")
+  cat("          과세방법 : ", ind_isu$TAX_MD, "\n")
+  cat("          투자등급 : ", ind_isu$INV_GD, "\n")
+  cat("            등록일 : ", format(ind_isu$REG_DD, format="%Y-%m-%d"), "\n")
+  print(ind_isu, row.names=FALSE, digits=digits)
+  invisible(ind_isu)
+}
 
 
 
@@ -155,45 +185,64 @@ get_issue <- function(krcd) {
 #' @param krcd 채권코드
 #' @param ... 업데이트목록
 #' @examples
-#' updateIssue(krcd = 'KR6079161C75', CLASS = 'ccc')
+#' update_issue(krcd = 'KR6079161C75', INV_GD = 'ccc')
+#' update_issue(krcd = 'KR6034832E28', INV_GD = 'ddd')
 #'
-updateIssue <- function(krcd, ...) {
+update_issue <- function(krcd, ...) {
 
-  data('dat_issue')
-  new = list(...)
-  isu = get_issue(krcd)
+  new_val = list(...)
+  ind_isu = get_issue(krcd) %>% mutate(REG_DD = Sys.Date())
+  isu_pth = file.path(dat_pth, 'dat_issue.rda')
 
-  # new = list(REG_DD = '2022-12-11', CLASS = 'ccc')
-  # i=1
-
-  # if (!any(dat_issue$ISU_CD==krcd)) {
-  #   ind_issue = scrape_issue(krcd)
-  #   dat_issue = merge(dat_issue, ind_issue)
-  #   usethis::use_data(dat_issue, overwrite = TRUE)
-  # }
-
-  for (i in seq_along(new)) {
-    isu[isu$ISU_CD==krcd, names(new)[i]] <- new[[i]]
+  for (i in seq_along(new_val)) {
+    ind_isu[[names(new_val)[i]]] <- new_val[[i]]
   }
 
-  dat_issue = bind_rows(dat_issue[isu$ISU_CD!=krcd,], isu)
+  dat_old = read_rds(isu_pth) %>% filter(ISU_CD != krcd)
+  dat_new = bind_rows(dat_old, ind_isu) %>%
+    select(colnames(dat_old)) %>%
+    group_by(ISU_CD) %>%
+    arrange(desc(REG_DD)) %>%
+    filter(row_number()==1) %>%
+    as.data.frame()
 
-  usethis::use_data(dat_issue, overwrite = TRUE)
-  return(out)
+  write_rds(dat_new, file = isu_pth)
+  print.get_issue(krcd)
 }
 
-updateIssue(krcd = 'KR6080721D34', CLASS = 'ccc')
-updateIssue(krcd = 'KR6080721D34', CLASS = 'ccc')
-updateIssue(krcd = 'KR6034832E28', CLASS = 'ccc')
-updateIssue(krcd = 'KR6109961D71', CLASS = 'ccc')
-dat_issue
-krcd = 'KR6080721D34'
-
-data(dat_issue)
 
 
+#' KRX 신용등급 업데이트
+#' @examples
+#' update_credit()
+#'
+update_credit <- function() {
 
-#' World Health Organization TB data
+    isu_pth = file.path(dat_pth, 'dat_issue.rda')
+    dat_isu = read_rds(isu_pth)
+
+    for (i in 1:nrow(dat_isu)) {cat(paste0(round(i/nrow(dat_isu)*100), '% completed'))
+      if (dat_isu[i, 'BTP_NM'] != '회사채') next
+      new_crd = scrape_issue(dat_isu[i, 'ISU_CD'])$CREDIT
+
+      if (!is.na(new_crd)) {
+        if (dat_isu[i, 'CREDIT'] != new_crd) {
+          print(paste(dat_isu[i, 'ISU_CD'], ' | ', dat_isu[i, 'ISU_NM'], ' | ', dat_isu[i, 'CREDIT'], '-->', new_crd))
+          dat_isu[i, 'CREDIT'] <- new_crd
+          dat_isu[i, 'REG_DD'] <- Sys.Date()
+          saveRDS(isu, file.path(work_path$issue, krcd))
+        }
+      }
+      if (i == nrow(dat_isu)) {cat(': Done\n')} else {cat('\014')}
+      Sys.sleep(0.1)
+    }
+    write_rds(dat_isu, file = isu_pth)
+}
+
+
+
+
+#' 데이터셋 HELP 템플릿
 #'
 #' A subset of data from the World Health Organization Global Tuberculosis
 #' Report ...
@@ -208,39 +257,3 @@ data(dat_issue)
 #' }
 #' @source <https://www.who.int/teams/global-tuberculosis-programme/data>
 "who"
-
-
-
-
-
-
-
-
-
-#' KRX 신용등급 업데이트
-#' @examples
-#' updateCredit()
-#'
-updateCredit <- function() {
-
-    krcd_list = list.files(file.path(work_path$issue), full.names=F)
-
-    for (i in 1:length(krcd_list)) {cat(paste0(round(i/length(krcd_list)*100), '% completed'))
-        isu = getIssue(krcd_list[i])
-
-        if (isu$채권유형 == '회사채') {
-            new = scrIssue(krcd_list[i])$CREDIT
-            if (!is.na(new)) {
-                if (isu$CREDIT != new) {
-                    print(paste(isu$채권CD, ' | ', isu$채권명, ' | ', isu$CREDIT, '-->', new))
-                    isu$CREDIT <- new
-                    isu$등록일 <- Sys.Date()
-                    saveRDS(isu, file.path(work_path$issue, krcd))
-                }
-            }
-        }
-        if (i == length(krcd_list)) {cat(': Done\n')} else {cat('\014')}
-        Sys.sleep(0.1)
-    }
-}
-

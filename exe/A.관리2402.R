@@ -36,10 +36,10 @@
 ############################'
 ## 내부데이터(sysdata.rda)
 ############################.
+# dat_pth  = file.path(dirname(rstudioapi::getSourceEditorContext()$path), 'data')
 # fee_amt  = 5
 # fee_rate = 0.002
 # tax_rate = 0.154
-
 # usethis::use_data(fee_amt, fee_rate, tax_rate, internal = TRUE, overwrite = TRUE)
 
 
@@ -58,7 +58,7 @@ usethis::use_data(issue, overwrite = TRUE)
 # issue <- scrKrxIssue(krcd = 'KR6079161C75')
 
 # system.file('issue', package = 'ssass')
-
+?system.file
 
 
 

@@ -1,13 +1,58 @@
 Package: ssass
 Type: Package
-Title: What the Package Does (Title Case)
+Title: Investment Asset Portpolio
+Date: 2024-02-01
 Version: 0.1.0
-Author: Who wrote it
-Maintainer: The package maintainer <yourself@somewhere.net>
-Description: More about what it does (maybe more than one line)
-    Use four spaces when indenting paragraphs within the Description.
-License: What license is it under?
+Author: Shin, JungTae
+Maintainer: heystat <heystat@naver.com>
+Description: Investment Decision Making Tools By Pluto
+Imports: methods, 
+         stats, 
+         graphics, 
+         zoo,
+         crayon,
+         data.table, 
+         dplyr, 
+         forecast, 
+         formattable, 
+         ggplot2, 
+         glue,
+         hash, 
+         here, 
+         highcharter, 
+         Hmisc, 
+         httr, 
+         janitor, 
+         jrvFinance, 
+         jsonlite, 
+         kableExtra, 
+         lubridate, 
+         openxlsx, 
+         PerformanceAnalytics, 
+         plotly, 
+         purrr, 
+         quantmod, 
+         quantreg, 
+         R6, 
+         readr, 
+         readxl, 
+         roptions, 
+         RQuantLib, 
+         rvest, 
+         stringi, 
+         stringr, 
+         tibble, 
+         tidyr, 
+         xml2, 
+         xts, 
+         zoo
+License: GPL (>= 2)
 Encoding: UTF-8
 LazyData: true
-URL: https://github.com/heystat/ssass
-BugReports: https://github.com/heystat/ssass/issues
+RoxygenNote: 7.2.3
+Suggests: 
+    knitr,
+    rmarkdown
+VignetteBuilder: knitr
+Depends: 
+    R (>= 2.10)
