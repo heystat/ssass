@@ -10,9 +10,9 @@
 #' @export
 #'
 #' @examples
-#' getBizDate(prev = 1, dfm = 'date')
+#' get_biz_date(prev = 1, dfm = 'date')
 #'
-getBizDate <- function(biz_date, prev = 0, dfm = c("text", "date")) {
+get_biz_date <- function(biz_date, prev = 0, dfm = c("text", "date")) {
     if (missing(biz_date)) {
         oscrp = httr::GET("https://finance.naver.com/")
         ohtml = read_html(oscrp, encoding = "EUC-KR")

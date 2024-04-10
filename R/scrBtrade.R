@@ -7,9 +7,9 @@
 #' @return 데이터프레임
 #' @export
 #' @examples
-#' getBondPrice(krcd='KR6079161C75')
+#' get_bond_price(krcd='KR6079161C75')
 #'
-getBondPrice <- function(krcd, nday=30, ...) {
+get_bond_price <- function(krcd, nday=30, ...) {
     dat =
         scrKrxTab(isuCd = krcd,
                   strtDd = format(Sys.Date() - nday, "%Y%m%d"),
