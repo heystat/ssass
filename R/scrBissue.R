@@ -6,14 +6,10 @@
 #' cnvt_crdt2fac('AAA+/AAA-')
 #'
 cnvt_crdt2fac <- function(credit) {
-        cat_a = c('AAA+', 'AAA', 'AAA-', 'AA+', 'AA', 'AA-', 'A+', 'A', 'A-')
-        cat_b = c('BBB+', 'BBB', 'BBB-', 'BB+', 'BB', 'BB-', 'B+', 'B', 'B-')
-        cat_c = c('CCC+', 'CCC', 'CCC-', 'CC+', 'CC', 'CC-', 'C+', 'C', 'C-')
-        crdt_order = c(cat_a, cat_b, cat_c)
-        credit = str_split(trimws(credit), '/', simplify = T)
-        grade = factor(credit, ordered=TRUE, levels=crdt_order)
-        if (length(grade)>1) return(max(grade, na.rm = T))
-        return(grade)
+  credit = str_split(trimws(credit), '/', simplify = T)
+  grade = factor(credit, ordered=TRUE, levels = levels(crdt_gd))
+  if (length(grade)>1) return(max(grade, na.rm = T))
+  return(grade)
 }
 
 
@@ -89,10 +85,12 @@ scrape_issue <- function(krcd, tax_md = c('dvd', 'tot')) {
               RDM_RT = replace_na(RDM_RT, 1),
               TAX_MD = tax_md[1],
               INV_GD = 'ddd',
-              REG_DD = Sys.Date()) %>%
+              REG_DD = Sys.Date(),
+              DSCRPT = '') %>%
     as.data.frame()
   return(isu)
 }
+
 
 
 #' KRX 채권 발행정보 출력
@@ -116,7 +114,8 @@ scrape_issue.print <- function(krcd) {
            '상환율'=RDM_RT,
            '과세방법'=TAX_MD,
            '투자등급'=INV_GD,
-           '등록일'=REG_DD)
+           '등록일'=REG_DD,
+           '고려사항'=DSCRPT)
 }
 
 
@@ -160,24 +159,36 @@ get_issue <- function(krcd) {
 #'
 print.get_issue <- function(krcd, digits=5, ...) {
   ind_isu = get_issue(krcd)
-  cat("            채권CD : ", ind_isu$ISU_CD, "\n")
-  cat("            채권명 : ", ind_isu$ISU_NM, "\n")
-  cat("          신용등급 : ", ind_isu$CREDIT, "\n")
-  cat("          채권유형 : ", ind_isu$BTP_NM, "\n")
-  cat("          발행형태 : ", ind_isu$INT_MD, "\n")
-  cat("            옵션CD : ", ind_isu$OPTION, "\n")
-  cat("          연지급수 : ", ind_isu$INT_FQ, "\n")
-  cat("            발행일 : ", format(ind_isu$ISU_DD, format="%Y-%m-%d"), "\n")
-  cat("            상환일 : ", format(ind_isu$RDM_DD, format="%Y-%m-%d"), "\n")
-  cat("          표면금리 : ", ind_isu$COUPON, "\n")
-  cat("            상환율 : ", format(ind_isu$RDM_RT, digits=digits), "\n")
-  cat("          과세방법 : ", ind_isu$TAX_MD, "\n")
-  cat("          투자등급 : ", ind_isu$INV_GD, "\n")
-  cat("            등록일 : ", format(ind_isu$REG_DD, format="%Y-%m-%d"), "\n")
-  print(ind_isu, row.names=FALSE, digits=digits)
-  invisible(ind_isu)
+  cat(blue("       채권CD : "), ind_isu$ISU_CD, "\n")
+  cat(blue("       채권명 : "), ind_isu$ISU_NM, "\n")
+  cat(blue("     신용등급 : "), ind_isu$CREDIT, "\n")
+  cat(blue("     채권유형 : "), ind_isu$BTP_NM, "\n")
+  cat(blue("     발행형태 : "), ind_isu$INT_MD, "\n")
+  cat(blue("       옵션CD : "), ind_isu$OPTION, "\n")
+  cat(blue("     연지급수 : "), ind_isu$INT_FQ, "\n")
+  cat(blue("       발행일 : "), format(ind_isu$ISU_DD, format="%Y-%m-%d"), "\n")
+  cat(blue("       상환일 : "), format(ind_isu$RDM_DD, format="%Y-%m-%d"), "\n")
+  cat(blue("     표면금리 : "), ind_isu$COUPON, "\n")
+  cat(blue("       상환율 : "), format(ind_isu$RDM_RT, digits=digits), "\n")
+  cat(blue("     과세방법 : "), ind_isu$TAX_MD, "\n")
+  cat(blue("     투자등급 : "), ind_isu$INV_GD, "\n")
+  cat(blue("       등록일 : "), format(ind_isu$REG_DD, format="%Y-%m-%d"), "\n")
+  cat(blue("     고려사항 : "), format(ind_isu$DSCRPT, format="%Y-%m-%d"), "\n")
+  # print(ind_isu, row.names=FALSE, digits=digits)
+  # invisible(ind_isu)
 }
 
+
+#' 채권 발행정보 파일 조회(dat_issue.rda)
+#'
+#' @param ...
+#' @examples
+#' get_dat_issue()
+#'
+get_dat_issue <- function(...) {
+  isu_pth = file.path(dat_pth, 'dat_issue.rda')
+  read_rds(isu_pth)
+}
 
 
 #' 채권 발행정보 업데이트
