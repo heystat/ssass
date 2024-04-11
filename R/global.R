@@ -35,7 +35,7 @@ call_library <- function() {
     if (length(new.pkg)) {install.packages(new.pkg, dependencies = TRUE)}
     out = sapply(use.pkgs, require, character.only = TRUE)
 }
-# suppressWarnings(suppressMessages(call_library()))
+suppressWarnings(suppressMessages(call_library()))
 
 
 #' `파일위치`
@@ -63,26 +63,26 @@ workPathBond <- function(home) {
 ############################'
 ## `채권 세금 및 거래비용`
 ############################'
-constant_bond <-
-    list(fee_rate = 0.002,
-         tax_rate = 0.154)
+# constant_bond <-
+#     list(fee_rate = 0.002,
+#          tax_rate = 0.154)
 
 
 ############################'
 ## `KRX OTP 파라메타 및 URL`
 ############################'
-krx_otp_base <-
-    list(mktId = 'BND',
-         bndTpCd = 'TT',
-         basddTpCd = '2',
-         money = '1',
-         csvxls_isNo = 'false',
-         name = 'fileDown')
+# krx_otp_base <-
+#     list(mktId = 'BND',
+#          bndTpCd = 'TT',
+#          basddTpCd = '2',
+#          money = '1',
+#          csvxls_isNo = 'false',
+#          name = 'fileDown')
 
-krx_otp_urls <-
-    list(file = 'http://data.krx.co.kr/comm/fileDn/GenerateOTP/generate.cmd',
-         json = 'http://data.krx.co.kr/comm/bldAttendant/getJsonData.cmd',
-         down = 'http://data.krx.co.kr/comm/fileDn/download_csv/download.cmd')
+# krx_otp_urls <-
+#     list(file = 'http://data.krx.co.kr/comm/fileDn/GenerateOTP/generate.cmd',
+#          json = 'http://data.krx.co.kr/comm/bldAttendant/getJsonData.cmd',
+#          down = 'http://data.krx.co.kr/comm/fileDn/download_csv/download.cmd')
 
 
 

@@ -30,7 +30,8 @@ scr_krx_txt <- function(...) {
 #' scr_krx_tab(dbnm = 'MDCSTAT09801') %>% head()
 #'
 scr_krx_tab <- function(dbnm, ...) {
-  new = list(url = glue('dbms/MDC/STAT/standard/{dbnm}'), trdDd = get_biz_date(), ...)
+  new = list(url = glue('dbms/MDC/STAT/standard/{dbnm}'), ...)
+  if (!any(names(new) == 'trdDd')) new$trdDd = get_biz_date()
   otp = gdata::update.list(krx_otp_base, new)
   txt = POST(query = otp, url = 'http://data.krx.co.kr/comm/fileDn/GenerateOTP/generate.cmd')
   txt = html_text(read_html(txt))
@@ -43,16 +44,16 @@ scr_krx_tab <- function(dbnm, ...) {
 }
 
 
+
 #' 장내채권 전종목 리스트
 #'
 #' @param obj 발행정보 오브젝트
 #' @param ... 파라메터
 #'
 #' @examples
-#' bond_list = get_bond_list()
-#' bond_list %>% tail
+#' scr_bond_list() %>% tail
 #'
-get_bond_list <- function(sect) {
+scr_bond_list <- function(sect) {
     dat =
         scr_krx_tab(dbnm = 'MDCSTAT10001') %>%
         select(표준코드, 한글종목명, 채권유형, 표면금리, 발행일, 상환일, 발행금액) %>%
@@ -68,20 +69,38 @@ get_bond_list <- function(sect) {
 }
 
 
-
-#' 채권종목조회
+#' KRX 채권 발행정보 수집
 #'
-#' @param x 채권코드 또는 채권이름름
+#' @param krcd 채권코드
 #'
-#' @return 데이터프레임
+#' @return 발행정보
 #' @export
 #' @examples
-#' seek_bond('씨제이')
+#' scr_issue(krcd = 'KR6079161C75')
 #'
-seek_bond <- function(x) {
-    dat = get_bond_list()
-    rbind(dat %>% filter(str_detect(ISU_CD, x)), dat %>% filter(str_detect(ISU_NM, x)))
+scr_issue <- function(krcd) {
+  otp = list(isuCd = krcd, bld = 'dbms/MDC/STAT/standard/MDCSTAT10901')
+  htm = httr::POST(query = otp, url = 'http://data.krx.co.kr/comm/bldAttendant/getJsonData.cmd')
+  htm = html_text(read_html(htm))
+  txt = gsub("\"|output\":|\\{|\\}|\\[|\\]", "", htm)
+  txt = gsub(",([[:digit:]])", "\\1", txt)
+
+  isu = data.frame(str_split(txt, ",")) %>%
+    setNames("keyvalue") %>%
+    filter(str_count(keyvalue, ':') == 1) %>%
+    separate("keyvalue", c("key", "value"), sep = ":") %>%
+    filter(value != "") %>%
+    pivot_wider(names_from = key, values_from = value) %>%
+    as.data.frame()
+
+  if (any(str_detect(names(isu), 'CREDIT_VALU'))) {
+    isu = isu %>% unite(CREDIT, contains('CREDIT_VALU'), remove=T, sep='/')
+  } else {
+    isu = isu %>% mutate(CREDIT = NA_character_)
+  }
+  return(isu)
 }
+
 
 
 #' 채권 전종목 매매가격 조회
@@ -89,15 +108,15 @@ seek_bond <- function(x) {
 #' @return 데이터프레임
 #' @export
 #' @examples
-#' get_bond_price() %>% head()
+#' scr_bond_prices() %>% head()
 #'
-get_bond_price <- function() {
+scr_bond_prices <- function() {
     scr_krx_tab(dbnm = 'MDCSTAT09801') %>%
         transmute(ISU_CD = 종목코드,
                   ISU_NM = 종목명,
                   PRC_PR = round(종가_가격),
                   PRC_AV = round(거래대금/거래량*10000),
-                  ROR_PR = 종가_수익률,
+                  BTX_RR = round(종가_수익률/100, 4),
                   TRD_VM = round(거래량/1000),
                   TRD_AT = round(거래대금/1000))
 }

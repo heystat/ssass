@@ -45,9 +45,9 @@ get_biz_date <- function(biz_date, prev = 0, dfm = c("text", "date")) {
 #' @export
 #'
 #' @examples
-#' tail(nvrMarketIndex(cols=c('localTradedAt', 'closePrice')))
+#' tail(get_nvr_market_index(cols=c('localTradedAt', 'closePrice')))
 #'
-nvrMarketIndex <- function(cols, category='exchange', reuters='FX_USDKRW', pages=10, pagesize=60) {
+get_nvr_market_index <- function(cols, category='exchange', reuters='FX_USDKRW', pages=10, pagesize=60) {
     for (i in 1:pages) {
         url = glue('https://m.stock.naver.com/front-api/v1/marketIndex/',
                    'prices?category={category}&reutersCode={reuters}&page={i}&pageSize={pagesize}')
