@@ -79,7 +79,7 @@ get_isutrd <- function(sect='회사채') {
   bnd_trd = scr_bond_prices() %>% select(-ISU_NM)
   new_isu = setdiff(bnd_trd$ISU_CD, get_dat_issue()$ISU_CD)
   for (i in seq_along(new_isu)) {cat(paste0(round(i / length(new_isu) * 100), '% completed'))
-    set_issue(krcd = new_isu[i], out = FALSE)
+    get_issue(krcd = new_isu[i], out = FALSE)
     cat('\014')
   }
   dat_isu = get_dat_issue()
