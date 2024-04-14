@@ -80,17 +80,18 @@ indBondEvalPrice <- function(krcd, nday=30, ...) {
 #' @examples
 #' getTarget()
 #'
-getTarget <- function(sect='회사채', volumn=100) {
 
-    bnd_cds = bondList(sect) %>% select(채권CD) %>% pull
-    bondPrice() %>%
-        filter(채권CD %in% bnd_cds) %>%
-        filter(거래량 >= volumn) %>%
-        select(채권CD, 채권명, 현재가, 평균가, 현수익률, 거래량, 거래금액) %>%
-        mutate(채권명 = str_sub(채권명, 1,10),
-               현수익률 = sprintf("%2.1f", 현수익률),
-               across(where(is.numeric), ~ formattable::comma(.x, digits=0)))
-}
+# getTarget <- function(sect='회사채', volumn=100) {
+#
+#     bnd_cds = bondList(sect) %>% select(채권CD) %>% pull
+#     bondPrice() %>%
+#         filter(채권CD %in% bnd_cds) %>%
+#         filter(거래량 >= volumn) %>%
+#         select(채권CD, 채권명, 현재가, 평균가, 현수익률, 거래량, 거래금액) %>%
+#         mutate(채권명 = str_sub(채권명, 1,10),
+#                현수익률 = sprintf("%2.1f", 현수익률),
+#                across(where(is.numeric), ~ formattable::comma(.x, digits=0)))
+# }
 
 
 #' 국채수익률PLOT
@@ -98,10 +99,11 @@ getTarget <- function(sect='회사채', volumn=100) {
 #' @examples
 #' plotGovern()
 #'
-plotGovern = function() {
-    bas_yield = krxTresuryBondYield() %>% filter(str_detect(채권종류, '국채'))
-    ggbas = bas_yield %>% ggplot() +
-        geom_point(aes(x = 채권종류, y = 수익률)) +
-        ylim(floor(min(bas_yield[,2])), ceiling(max(bas_yield[,2])))
-    ggplotly(ggbas)
-}
+
+# plotGovern = function() {
+#     bas_yield = krxTresuryBondYield() %>% filter(str_detect(채권종류, '국채'))
+#     ggbas = bas_yield %>% ggplot() +
+#         geom_point(aes(x = 채권종류, y = 수익률)) +
+#         ylim(floor(min(bas_yield[,2])), ceiling(max(bas_yield[,2])))
+#     ggplotly(ggbas)
+# }
