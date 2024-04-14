@@ -73,6 +73,8 @@ bond_hanname <-
        'INT_FQ'='연지급수',
        'ISU_DD'='발행일',
        'RDM_DD'='상환일',
+       'RMN_DS'='잔존일수',
+
        'COUPON'='표면금리',
        'RDM_RT'='상환율',
        'TAX_MD'='과세방법',
@@ -88,7 +90,18 @@ bond_hanname <-
        'TRD_AT'='거래금액',
 
        'PRC_EV'='민평가',
-       'ROR_EV'='민평수익률'
+       'ROR_EV'='민평수익률',
+
+       'INV_VM'='투자수량',
+       'INV_AT'='투자금액',
+
+       'TRD_DD'='매매일',
+       'TRD_PC'='매매가',
+
+       'BUY_DD'='매수일',
+       'BUY_PC'='매수가',
+       'SEL_DD'='매도일',
+       'SEL_PC'='매도가',
 
        )
 
